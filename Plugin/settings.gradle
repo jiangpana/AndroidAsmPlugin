@@ -1,0 +1,3 @@
+include ':BasePlugin'
+include ':AutoTrackPlugin'
+rootProject.name = "Plugin"
