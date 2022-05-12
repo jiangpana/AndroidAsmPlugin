@@ -1,6 +1,8 @@
-package com.jansir.androidplugin.autotrack
+package com.jansir.androidplugin.base
 
-import org.apache.commons.codec.digest.DigestUtils
+import com.jansir.androidplugin.base.transform.TransformInvocationHelper
+import com.jansir.androidplugin.base.ext.printThis
+import com.jansir.androidplugin.base.utils.DigestUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -10,7 +12,7 @@ import java.util.zip.ZipEntry
 
 internal object JarUtils {
 
-    fun modifyJarFile(jarFile: File, tempDir: File?, modife: (String,ByteArray)->ByteArray): File {
+    fun modifyJarFile(jarFile: File, tempDir: File?, transform: TransformInvocationHelper): File {
         /** 设置输出到的jar  */
         val hexName = DigestUtils.md5Hex(jarFile.absolutePath).substring(0, 8)
         val optJar = File(tempDir, hexName + jarFile.name)
@@ -22,7 +24,7 @@ internal object JarUtils {
                 val inputStream = file.getInputStream(jarEntry)
                 val entryName = jarEntry.name
                 if (entryName.contains("module-info.class") && !entryName.contains("META-INF")) {
-                    println("jar file module-info:$entryName jarFileName:${jarFile.path}")
+                    printThis("jar file module-info:$entryName jarFileName:${jarFile.path}")
                 } else {
                     val zipEntry = ZipEntry(entryName)
                     jarOutputStream.putNextEntry(zipEntry)
@@ -30,7 +32,7 @@ internal object JarUtils {
                     val sourceClassBytes = inputStream.readBytes()
                     if (entryName.endsWith(".class")) {
                         try {
-                            modifiedClassBytes = modife(entryName, sourceClassBytes)
+                            modifiedClassBytes = transform.process(entryName, sourceClassBytes)
                         } catch (ignored: Exception) {
                         }
                     }
@@ -49,7 +51,6 @@ internal object JarUtils {
         return optJar
     }
 
-
     fun scanJarFile(jarFile: File): HashSet<String> {
         val hashSet = HashSet<String>()
         val file = JarFile(jarFile)
@@ -59,7 +60,7 @@ internal object JarUtils {
                 val jarEntry = enumeration.nextElement()
                 val entryName = jarEntry.name
                 if (entryName.contains("module-info.class")) {
-                    println("module-info:$entryName")
+                    printThis("module-info:$entryName")
                     continue
                 }
                 if (entryName.endsWith(".class")) {
@@ -113,8 +114,4 @@ internal object JarUtils {
             }
         }
     }
-}
-
-interface DeleteCallBack {
-    fun delete(className: String, classBytes: ByteArray)
 }

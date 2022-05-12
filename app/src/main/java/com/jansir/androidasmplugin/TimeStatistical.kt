@@ -5,7 +5,8 @@ object TimeStatistical {
 
     private var startTime = 0L
 
-    fun start() {
+    fun start(str:String) {
+        println("TimeStatistical $str")
         startTime = System.currentTimeMillis()
     }
 
