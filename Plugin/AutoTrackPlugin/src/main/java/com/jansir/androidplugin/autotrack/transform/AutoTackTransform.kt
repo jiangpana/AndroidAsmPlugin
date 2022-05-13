@@ -8,17 +8,32 @@ import com.jansir.androidplugin.base.ext.isMethodEndOpcode
 import com.jansir.androidplugin.base.ext.printThis
 import com.jansir.androidplugin.base.transform.BaseTransform
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.tree.*
 
 class AutoTackTransform : BaseTransform() {
     val logEventAnnoDes = "Lcom/jansir/androidasmplugin/autotrack/LogEvent;"
-
+    val hookthread = "com/jansir/androidasmplugin/hookthread/HookThread"
+    val javaThread = "java/lang/Thread"
     override fun getAsmHelper(): AsmHelper {
         return object : AsmHelper() {
             override fun processClassNode(classNode: ClassNode) {
-                classNode.methods?.forEach {
-                    if (it.hasAnnotation(logEventAnnoDes)) {
-                        insertEventLogger(it, it.getAnnotationValue(logEventAnnoDes))
+
+                //处理内部类情况
+                if (classNode.name != hookthread &&
+                    classNode.superName == javaThread
+                ) {
+                    printThis("违规 -> "+classNode.name )
+                }
+                classNode.methods?.forEach { method ->
+                    if (method.hasAnnotation(logEventAnnoDes)) {
+                        insertEventLogger(method, method.getAnnotationValue(logEventAnnoDes))
+                    }
+                    method.instructions.forEach {
+                        if (it.opcode == Opcodes.NEW && it is TypeInsnNode && it.desc == javaThread) {
+                            printThis("it.desc = ${it.desc} , ${classNode.name}")
+                            it.desc = hookthread
+                        }
                     }
                 }
 
@@ -107,8 +122,16 @@ class AutoTackTransform : BaseTransform() {
                                 )
                             )
 
-                            insertBefore(it,LdcInsnNode(annotationValue[1]))
-                            insertBefore(it,MethodInsnNode(Opcodes.INVOKEVIRTUAL,"com/jansir/androidasmplugin/autotrack/EventLogger","log","(Ljava/lang/String;)V"))
+                            insertBefore(it, LdcInsnNode(annotationValue[1]))
+                            insertBefore(
+                                it,
+                                MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    "com/jansir/androidasmplugin/autotrack/EventLogger",
+                                    "log",
+                                    "(Ljava/lang/String;)V"
+                                )
+                            )
                         }
                     }
                 }
