@@ -97,6 +97,7 @@ class TransformInvocationHelper(
             destName + "_" + hexName,
             jarInput.contentTypes, jarInput.scopes, Format.JAR
         )
+        printThis("jarOut path = ${dest.absolutePath}")
         if (isIncremental) {
             when (status) {
                 Status.ADDED -> foreachJar(dest, jarInput)
@@ -158,37 +159,43 @@ class TransformInvocationHelper(
 
     @Throws(IOException::class)
     private fun handleDirectoryInput(directoryInput: DirectoryInput) {
-        val dest = outputProvider!!.getContentLocation(
+        //输出文件目录file
+        val outDir = outputProvider!!.getContentLocation(
                 directoryInput.name, directoryInput.contentTypes,
                 directoryInput.scopes, Format.DIRECTORY
         )
-        destFiles.add(dest)
+        destFiles.add(outDir)
+        //改变的文件集合
         val map = directoryInput.changedFiles
-        val dir = directoryInput.file
+        //输出源文件的目录
+        val inDir = directoryInput.file
+        printThis("directoryOutput absolutePath =${outDir.absolutePath}")
         if (isIncremental) {
+            //处理增量编译情况
             for ((file, status) in map) {
-                val destFilePath = file.absolutePath.replace(dir.absolutePath, dest.absolutePath)
-                val destFile = File(destFilePath)
+                //file = 已经改变的文件 , 得到改变文件输出file的绝对路径
+                val outFilePath = file.absolutePath.replace(inDir.absolutePath, outDir.absolutePath)
+                val outFile = File(outFilePath)
                 when (status) {
                     Status.ADDED, Status.CHANGED -> {
                         val callable = Callable<Void> {
                             try {
-                                FileUtils.touch(destFile)
+                                FileUtils.touch(outFile)
                             } catch (ignored: Exception) {
                                 //  Files.createParentDirs(destFile)
                             }
-                            modifySingleFile(dir, file, destFile)
+                            modifySingleFile(inDir, file, outFile)
                             null
                         }
                         tasks.add(callable)
                     }
-                    Status.REMOVED -> deleteDirectory(destFile, dest)
+                    Status.REMOVED -> deleteDirectory(outFile, outDir)
                     else -> {
                     }
                 }
             }
         } else {
-            changeFile(dir, dest)
+            changeFile(inDir, outDir)
         }
     }
 

@@ -12,6 +12,8 @@ import org.junit.Assert.*
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
+        var a :String?= null
+      a!!.length;
         assertEquals(4, 2 + 2)
     }
 }

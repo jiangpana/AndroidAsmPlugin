@@ -21,11 +21,21 @@ class AutoTackTransform : BaseTransform() {
 
                 //处理内部类情况
                 if (classNode.name != hookthread &&
-                    classNode.superName == javaThread
+                    classNode.superName == javaThread &&classNode.name =="com/jansir/androidasmplugin/MainActivity\$test5\$thread\$1"
                 ) {
                     printThis("违规 -> "+classNode.name )
+                    classNode.methods.forEach {
+                        methodNode ->
+                        println("========== ${methodNode.name}  ${methodNode.desc} ${methodNode.signature}  ${methodNode.access} ==========")
+                        methodNode.instructions.forEach {
+                            println("opcode = ${it.opcode}")
+                        }
+                        println("========================================")
+
+                    }
                 }
                 classNode.methods?.forEach { method ->
+
                     if (method.hasAnnotation(logEventAnnoDes)) {
                         insertEventLogger(method, method.getAnnotationValue(logEventAnnoDes))
                     }
