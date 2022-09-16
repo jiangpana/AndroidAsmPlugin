@@ -12,6 +12,7 @@
                   <project path="$PROJECT_DIR$/Plugin" />
                   <project path="$PROJECT_DIR$/Plugin/AutoTrackPlugin" />
                   <project path="$PROJECT_DIR$/Plugin/BasePlugin" />
+                  <project path="$PROJECT_DIR$/Plugin/HotFixPlugin" />
                 </projects>
               </build>
             </builds>
@@ -27,10 +28,10 @@
             <option value="$PROJECT_DIR$/Plugin" />
             <option value="$PROJECT_DIR$/Plugin/AutoTrackPlugin" />
             <option value="$PROJECT_DIR$/Plugin/BasePlugin" />
+            <option value="$PROJECT_DIR$/Plugin/HotFixPlugin" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

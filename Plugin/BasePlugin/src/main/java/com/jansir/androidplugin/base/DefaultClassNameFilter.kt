@@ -13,10 +13,10 @@ class DefaultClassNameFilter : ClassNameFilter {
 
     companion object {
         val whiteList = mutableListOf<String>().apply {
-//            add("kotlin")
-//            add("org")
-//            add("androidx")
-//            add("android")
+            add("kotlin")
+            add("org")
+            add("androidx")
+            add("android")
         }
     }
 }

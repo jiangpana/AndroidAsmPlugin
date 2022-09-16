@@ -281,21 +281,21 @@ class TransformInvocationHelper(
     }
 
     @Throws(IOException::class)
-    private fun changeFile(dir: File, dest: File) {
-        if (dir.isDirectory) {
-            FileUtils.copyDirectory(dir, dest)
-            dir.walkTopDown().filter { it.isFile }
-                    .forEach { classFile ->
-                        if (classFile.name.endsWith(".class")) {
+    private fun changeFile(inDir: File, outDir: File) {
+        if (inDir.isDirectory) {
+            FileUtils.copyDirectory(inDir, outDir)
+            inDir.walkTopDown().filter { it.isFile }
+                    .forEach { inClassFile ->
+                        if (inClassFile.name.endsWith(".class")) {
                             val task = Callable<Void> {
-                                val absolutePath = classFile.absolutePath.replace(
-                                        dir.absolutePath + File.separator, ""
+                                val absolutePath = inClassFile.absolutePath.replace(
+                                        inDir.absolutePath + File.separator, ""
                                 )
                                 val className = ClassUtils.path2Classname(absolutePath)
                                 if (!simpleScan) {
-                                    val bytes = IOUtils.toByteArray(FileInputStream(classFile))
+                                    val bytes = IOUtils.toByteArray(FileInputStream(inClassFile))
                                     val modifiedBytes = process(className, bytes)
-                                    modifiedBytes?.let { saveClassFile(it, dest, absolutePath) }
+                                    modifiedBytes?.let { saveClassFile(it, outDir, absolutePath) }
                                 } else {
                                     process(className, null)
                                 }
@@ -308,13 +308,13 @@ class TransformInvocationHelper(
     }
 
     @Throws(Exception::class)
-    private fun saveClassFile(modifiedBytes: ByteArray, dest: File, absolutePath: String) {
-        val tempDir = File(dest, "/temp")
+    private fun saveClassFile(modifiedBytes: ByteArray, outDir: File, absolutePath: String) {
+        val tempDir = File(outDir, "/temp")
         val tempFile = File(tempDir, absolutePath)
         tempFile.mkdirs()
         val modified = ClassUtils.saveFile(tempFile, modifiedBytes)
         //key为相对路径
-        val target = File(dest, absolutePath)
+        val target = File(outDir, absolutePath)
         if (target.exists()) {
             target.delete()
         }

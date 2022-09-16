@@ -12,6 +12,10 @@ import java.util.zip.ZipEntry
 
 internal object JarUtils {
 
+    val needDeleteClasses = arrayListOf(
+        "com/sq/mobile/commonpluhostandsqsdk/SQSdkInterface.class",
+        "com/sq/mobile/commonpluhostandsqsdk/BasePluginInterface.class"
+    );
     fun modifyJarFile(jarFile: File, tempDir: File?, transform: TransformInvocationHelper): File {
         /** 设置输出到的jar  */
         val hexName = DigestUtils.md5Hex(jarFile.absolutePath).substring(0, 8)
@@ -26,25 +30,29 @@ internal object JarUtils {
                 if (entryName.contains("module-info.class") && !entryName.contains("META-INF")) {
                     printThis("jar file module-info:$entryName jarFileName:${jarFile.path}")
                 } else {
-                    val zipEntry = ZipEntry(entryName)
-                    jarOutputStream.putNextEntry(zipEntry)
-                    var modifiedClassBytes: ByteArray? = null
-                    val sourceClassBytes = inputStream.readBytes()
-                    if (entryName.endsWith(".class")) {
-                        try {
-                            modifiedClassBytes = transform.process(entryName, sourceClassBytes)
-                        } catch (ignored: Exception) {
+                    printThis("entryName =$entryName")
+                    if (!needDeleteClasses.contains(entryName)){
+                        val zipEntry = ZipEntry(entryName)
+                        jarOutputStream.putNextEntry(zipEntry)
+                        var modifiedClassBytes: ByteArray? = null
+                        val sourceClassBytes = inputStream.readBytes()
+                        if (entryName.endsWith(".class")) {
+                            try {
+                                modifiedClassBytes = transform.process(entryName, sourceClassBytes)
+                            } catch (ignored: Exception) {
+                            }
                         }
+                        /**
+                         * 读取原jar
+                         */
+                        if (modifiedClassBytes == null) {
+                            jarOutputStream.write(sourceClassBytes)
+                        } else {
+                            jarOutputStream.write(modifiedClassBytes)
+                        }
+                        jarOutputStream.closeEntry()
                     }
-                    /**
-                     * 读取原jar
-                     */
-                    if (modifiedClassBytes == null) {
-                        jarOutputStream.write(sourceClassBytes)
-                    } else {
-                        jarOutputStream.write(modifiedClassBytes)
-                    }
-                    jarOutputStream.closeEntry()
+
                 }
             }
         }

@@ -18,6 +18,7 @@ buildscript {
 
 plugins {
     id 'auto-track'  apply false
+    id 'hot-fix'  apply false
 }
 
 allprojects {
